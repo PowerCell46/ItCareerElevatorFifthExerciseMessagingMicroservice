@@ -1,6 +1,6 @@
 package com.ItCareerElevatorFifthExercise.controllers;
 
-import com.ItCareerElevatorFifthExercise.DTOs.MessageRequestDTO;
+import com.ItCareerElevatorFifthExercise.DTOs.request.MessageRequestDTO;
 import com.ItCareerElevatorFifthExercise.services.interfaces.MessageService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +23,8 @@ public class MessageController {
     public ResponseEntity<String> processMessage(@Valid @RequestBody MessageRequestDTO requestDTO) {
         log.info("---> POST request on api/messages for user with id {}.", requestDTO.getSenderId());
 
-        System.out.println(requestDTO);
-
+        System.out.println("IncomingData: " + requestDTO);
+        messageService.processMessage(requestDTO);
 
         return ResponseEntity.created(null).body("Successful message processing.");
     }

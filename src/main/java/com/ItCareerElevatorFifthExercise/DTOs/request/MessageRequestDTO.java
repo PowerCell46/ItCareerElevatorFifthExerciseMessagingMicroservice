@@ -1,4 +1,4 @@
-package com.ItCareerElevatorFifthExercise.DTOs;
+package com.ItCareerElevatorFifthExercise.DTOs.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
