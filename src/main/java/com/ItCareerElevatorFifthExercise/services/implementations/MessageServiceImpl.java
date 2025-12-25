@@ -2,7 +2,7 @@ package com.ItCareerElevatorFifthExercise.services.implementations;
 
 import com.ItCareerElevatorFifthExercise.DTOs.request.MessageRequestDTO;
 import com.ItCareerElevatorFifthExercise.DTOs.kafka.PersistMessageDTO;
-import com.ItCareerElevatorFifthExercise.DTOs.kafka.UserLocationMessageDTO;
+import com.ItCareerElevatorFifthExercise.DTOs.kafka.UserLocationDTO;
 import com.ItCareerElevatorFifthExercise.services.interfaces.MessageService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +36,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     private void sendKafkaPersistMessage(MessageRequestDTO requestDTO) {
-        try { // TODO: EXPONENTIAL BACKOFF WITH JITTER
+        try {
             String key = String.format("user-message-%s", requestDTO.getSenderId());
             String value = objectMapper.writeValueAsString(new PersistMessageDTO(
                     requestDTO.getSenderId(),
@@ -47,11 +47,11 @@ public class MessageServiceImpl implements MessageService {
             persistMessageKafkaTemplate
                     .send(PERSIST_MESSAGE_TOPIC_NAME, key, value)
                     .whenComplete((result, ex) -> {
-                        if (ex != null) {
+                        if (ex != null) { // TODO: EXPONENTIAL BACKOFF WITH JITTER
                             log.error("Failed to send MessageRequestDTO to topic {}.", PERSIST_MESSAGE_TOPIC_NAME, ex);
 
                         } else {
-                            log.info("Sent invoice {} to topic {} partition {} offset {}.",
+                            log.info("Sent persistMessageDTO {} to topic {} partition {} offset {}.",
                                     key,
                                     result.getRecordMetadata().topic(),
                                     result.getRecordMetadata().partition(),
@@ -60,16 +60,17 @@ public class MessageServiceImpl implements MessageService {
                         }
                     });
 
-        } catch (JsonProcessingException ex) {
+        } catch (JsonProcessingException ex) { // TODO: Retry
             log.error("Failed to serialize MessageRequestDTO to JSON", ex);
         }
     }
 
     private void sendKafkaUserLocationMessage(MessageRequestDTO requestDTO) {
-        try { // TODO: EXPONENTIAL BACKOFF WITH JITTER
+        try {
             String key = String.format("user-location-%s", requestDTO.getSenderId());
-            String value = objectMapper.writeValueAsString(new UserLocationMessageDTO(
+            String value = objectMapper.writeValueAsString(new UserLocationDTO(
                     requestDTO.getSenderId(),
+                    requestDTO.getSenderUsername(),
                     requestDTO.getSenderLocation().getLatitude(),
                     requestDTO.getSenderLocation().getLongitude(),
                     requestDTO.getSenderLocation().getTimestamp()
@@ -78,11 +79,11 @@ public class MessageServiceImpl implements MessageService {
             persistMessageKafkaTemplate
                     .send(USER_LOCATION_TOPIC_NAME, key, value)
                     .whenComplete((result, ex) -> {
-                        if (ex != null) {
+                        if (ex != null) { // TODO: EXPONENTIAL BACKOFF WITH JITTER
                             log.error("Failed to send MessageRequestDTO to topic {}.", PERSIST_MESSAGE_TOPIC_NAME, ex);
 
                         } else {
-                            log.info("Sent invoice {} to topic {} partition {} offset {}.",
+                            log.info("Sent userLocationDTO {} to topic {} partition {} offset {}.",
                                     key,
                                     result.getRecordMetadata().topic(),
                                     result.getRecordMetadata().partition(),
@@ -91,7 +92,7 @@ public class MessageServiceImpl implements MessageService {
                         }
                     });
 
-        } catch (JsonProcessingException ex) {
+        } catch (JsonProcessingException ex) { // TODO: Retry
             log.error("Failed to serialize MessageRequestDTO to JSON", ex);
         }
     }

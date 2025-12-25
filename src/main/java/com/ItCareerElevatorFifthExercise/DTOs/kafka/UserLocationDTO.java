@@ -9,9 +9,11 @@ import lombok.ToString;
 @Setter
 @ToString
 @AllArgsConstructor
-public class UserLocationMessageDTO {
+public class UserLocationDTO {
 
     private String userId;
+
+    private String username;
 
     private Double latitude;
 
