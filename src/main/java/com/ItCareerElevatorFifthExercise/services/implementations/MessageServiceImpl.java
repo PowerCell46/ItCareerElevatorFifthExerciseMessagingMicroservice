@@ -74,7 +74,7 @@ public class MessageServiceImpl implements MessageService {
                     requestDTO.getSenderUsername(),
                     requestDTO.getSenderLocation().getLatitude(),
                     requestDTO.getSenderLocation().getLongitude(),
-                    requestDTO.getSenderLocation().getTimestamp()
+                    requestDTO.getSenderLocation().getRecordedAt()
             ));
 
             persistMessageKafkaTemplate

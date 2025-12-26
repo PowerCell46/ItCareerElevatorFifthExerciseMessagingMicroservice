@@ -15,5 +15,5 @@ public class LocationRequestDTO {
 
     private Double longitude;
 
-    private Long timestamp;
+    private Long recordedAt;
 }
