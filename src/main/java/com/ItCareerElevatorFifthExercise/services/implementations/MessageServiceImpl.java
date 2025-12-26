@@ -41,7 +41,8 @@ public class MessageServiceImpl implements MessageService {
             String value = objectMapper.writeValueAsString(new PersistMessageDTO(
                     requestDTO.getSenderId(),
                     requestDTO.getReceiverId(),
-                    requestDTO.getMessage()
+                    requestDTO.getContent(),
+                    requestDTO.getSentAt()
             ));
 
             persistMessageKafkaTemplate

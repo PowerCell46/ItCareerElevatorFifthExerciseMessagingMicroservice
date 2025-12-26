@@ -20,10 +20,10 @@ public class MessageController {
     private final MessageService messageService;
 
     @PostMapping
-    public ResponseEntity<String> processMessage(@Valid @RequestBody MessageRequestDTO requestDTO) {
+    public ResponseEntity<String> processMessage(@Valid @RequestBody MessageRequestDTO requestDTO) { // TODO: Change the return value to sent acknowledgement
         log.info("---> POST request on api/messages for user with id {}.", requestDTO.getSenderId());
 
-        System.out.println("IncomingData: " + requestDTO);
+        log.info("IncomingData from ApiGateway: {}.", requestDTO);
         messageService.processMessage(requestDTO);
 
         return ResponseEntity.created(null).body("Successful message processing.");
