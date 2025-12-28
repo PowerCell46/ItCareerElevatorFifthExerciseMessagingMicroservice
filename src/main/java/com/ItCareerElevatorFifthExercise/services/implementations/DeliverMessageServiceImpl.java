@@ -2,8 +2,7 @@ package com.ItCareerElevatorFifthExercise.services.implementations;
 
 import com.ItCareerElevatorFifthExercise.DTOs.apiGateway.ApiGatewayHandleReceiveMessageRequestDTO;
 import com.ItCareerElevatorFifthExercise.DTOs.common.ErrorResponseDTO;
-import com.ItCareerElevatorFifthExercise.DTOs.userPresence.MsvcGetUserPresenceResponseDTO;
-import com.ItCareerElevatorFifthExercise.exceptions.UserPresenceMicroserviceException;
+import com.ItCareerElevatorFifthExercise.exceptions.ApiGatewayException;
 import com.ItCareerElevatorFifthExercise.services.interfaces.DeliverMessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +23,7 @@ public class DeliverMessageServiceImpl implements DeliverMessageService {
     private String deliverMessagePath;
 
     @Override
-    public void sendMessageToTheReceiverThroughWebSocket(String serverInstanceAddress, String sessionId, String messageContent) {
+    public void sendMessageToReceiverThroughWebSocket(String serverInstanceAddress, String sessionId, String messageContent) {
         var receiveMessageRequestDTO = new ApiGatewayHandleReceiveMessageRequestDTO(
                 sessionId,
                 messageContent
@@ -39,10 +38,16 @@ public class DeliverMessageServiceImpl implements DeliverMessageService {
                 .onStatus(HttpStatusCode::isError, // TODO: Look for a better approach (test all possible custom errors)
                         resp -> resp
                                 .bodyToMono(ErrorResponseDTO.class)
-                                .map(UserPresenceMicroserviceException::new)
+                                .map(ApiGatewayException::new)
                                 .flatMap(Mono::error)
                 )
                 .toBodilessEntity()
                 .block();
+    }
+
+    @Override
+    public void sendMessageToReceiverThroughEmail(String senderUsername, String receiverEmail, String messageContent) {
+        // TODO: send a message to a kafka topic to a new microservice that sends emails to users
+        // TODO: don't forget exponential backoff with jitter
     }
 }

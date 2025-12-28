@@ -1,6 +1,5 @@
 package com.ItCareerElevatorFifthExercise.services.implementations;
 
-import com.ItCareerElevatorFifthExercise.DTOs.apiGateway.ApiGatewayHandleReceiveMessageRequestDTO;
 import com.ItCareerElevatorFifthExercise.DTOs.common.ErrorResponseDTO;
 import com.ItCareerElevatorFifthExercise.DTOs.request.MessageRequestDTO;
 import com.ItCareerElevatorFifthExercise.DTOs.userPresence.MsvcGetUserPresenceResponseDTO;
@@ -32,20 +31,23 @@ public class MessageServiceImpl implements MessageService {
         persistMessageService.sendKafkaPersistMessage(requestDTO);
         userLocationService.sendKafkaUserLocationMessage(requestDTO);
 
-        // TODO: Also handle groups...
-
         var userPresenceResponseDTO = getReceiverPresence(requestDTO.getReceiverId());
 
         if (isReceiverOnline(userPresenceResponseDTO)) {
             deliverMessageService
-                    .sendMessageToTheReceiverThroughWebSocket(
+                    .sendMessageToReceiverThroughWebSocket(
                             userPresenceResponseDTO.getServerInstanceAddress(),
                             userPresenceResponseDTO.getSessionId(),
                             requestDTO.getContent()
                     );
 
         } else {
-//            TODO: send through mail
+            deliverMessageService
+                    .sendMessageToReceiverThroughEmail(
+                            requestDTO.getSenderUsername(),
+                            userPresenceResponseDTO.getUserEmail(),
+                            requestDTO.getContent()
+                    );
         }
     }
 
