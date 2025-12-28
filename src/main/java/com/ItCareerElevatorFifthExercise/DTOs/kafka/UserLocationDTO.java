@@ -13,7 +13,7 @@ public class UserLocationDTO {
 
     private String userId;
 
-    private String username;
+    private String username; // For reading data convenience
 
     private Double latitude;
 

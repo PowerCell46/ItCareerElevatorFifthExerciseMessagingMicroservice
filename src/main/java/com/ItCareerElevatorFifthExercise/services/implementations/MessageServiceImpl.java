@@ -1,21 +1,17 @@
 package com.ItCareerElevatorFifthExercise.services.implementations;
 
-import com.ItCareerElevatorFifthExercise.DTOs.apiGateway.ReceiveMessageRequestDTO;
+import com.ItCareerElevatorFifthExercise.DTOs.apiGateway.ApiGatewayHandleReceiveMessageRequestDTO;
 import com.ItCareerElevatorFifthExercise.DTOs.common.ErrorResponseDTO;
 import com.ItCareerElevatorFifthExercise.DTOs.request.MessageRequestDTO;
-import com.ItCareerElevatorFifthExercise.DTOs.kafka.PersistMessageDTO;
-import com.ItCareerElevatorFifthExercise.DTOs.kafka.UserLocationDTO;
 import com.ItCareerElevatorFifthExercise.DTOs.userPresence.MsvcGetUserPresenceResponseDTO;
 import com.ItCareerElevatorFifthExercise.exceptions.UserPresenceMicroserviceException;
 import com.ItCareerElevatorFifthExercise.services.interfaces.MessageService;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.ItCareerElevatorFifthExercise.services.interfaces.PersistMessageService;
+import com.ItCareerElevatorFifthExercise.services.interfaces.UserLocationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -24,21 +20,15 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class MessageServiceImpl implements MessageService {
 
-    @Value("${app.kafka.topics.persist-message}")
-    private String PERSIST_MESSAGE_TOPIC_NAME;
-
-    @Value("${app.kafka.topics.user-location}")
-    private String USER_LOCATION_TOPIC_NAME;
-
     private final WebClient webClient;
-    private final ObjectMapper objectMapper;
     private final WebClient userPresenceWebClient;
-    private final KafkaTemplate<String, String> persistMessageKafkaTemplate;
+    private final PersistMessageService persistMessageService;
+    private final UserLocationService userLocationService;
 
     @Override
     public void processMessage(MessageRequestDTO requestDTO) {
-        sendKafkaPersistMessage(requestDTO);
-        sendKafkaUserLocationMessage(requestDTO);
+        persistMessageService.sendKafkaPersistMessage(requestDTO);
+        userLocationService.sendKafkaUserLocationMessage(requestDTO);
 
         // TODO: Also handle groups...
 
@@ -47,69 +37,6 @@ public class MessageServiceImpl implements MessageService {
             sendMessageToTheReceiverThroughWebSocket(userPresenceResponseDTO, requestDTO.getContent());
         } else {
 //            TODO: send through mail
-        }
-    }
-
-    private void sendKafkaPersistMessage(MessageRequestDTO requestDTO) {
-        try {
-            String key = String.format("user-message-%s", requestDTO.getSenderId());
-            String value = objectMapper.writeValueAsString(new PersistMessageDTO(
-                    requestDTO.getSenderId(),
-                    requestDTO.getReceiverId(),
-                    requestDTO.getContent(),
-                    requestDTO.getSentAt()
-            ));
-
-            persistMessageKafkaTemplate
-                    .send(PERSIST_MESSAGE_TOPIC_NAME, key, value)
-                    .whenComplete((result, ex) -> {
-                        if (ex != null) { // TODO: EXPONENTIAL BACKOFF WITH JITTER
-                            log.error("Failed to send MessageRequestDTO to topic {}.", PERSIST_MESSAGE_TOPIC_NAME, ex);
-
-                        } else {
-                            log.info("Sent persistMessageDTO {} to topic {} partition {} offset {}.",
-                                    key,
-                                    result.getRecordMetadata().topic(),
-                                    result.getRecordMetadata().partition(),
-                                    result.getRecordMetadata().offset()
-                            );
-                        }
-                    });
-
-        } catch (JsonProcessingException ex) { // TODO: Retry
-            log.error("Failed to serialize MessageRequestDTO to JSON", ex);
-        }
-    }
-
-    private void sendKafkaUserLocationMessage(MessageRequestDTO requestDTO) {
-        try {
-            String key = String.format("user-location-%s", requestDTO.getSenderId());
-            String value = objectMapper.writeValueAsString(new UserLocationDTO(
-                    requestDTO.getSenderId(),
-                    requestDTO.getSenderUsername(),
-                    requestDTO.getSenderLocation().getLatitude(),
-                    requestDTO.getSenderLocation().getLongitude(),
-                    requestDTO.getSenderLocation().getRecordedAt()
-            ));
-
-            persistMessageKafkaTemplate
-                    .send(USER_LOCATION_TOPIC_NAME, key, value)
-                    .whenComplete((result, ex) -> {
-                        if (ex != null) { // TODO: EXPONENTIAL BACKOFF WITH JITTER
-                            log.error("Failed to send MessageRequestDTO to topic {}.", PERSIST_MESSAGE_TOPIC_NAME, ex);
-
-                        } else {
-                            log.info("Sent userLocationDTO {} to topic {} partition {} offset {}.",
-                                    key,
-                                    result.getRecordMetadata().topic(),
-                                    result.getRecordMetadata().partition(),
-                                    result.getRecordMetadata().offset()
-                            );
-                        }
-                    });
-
-        } catch (JsonProcessingException ex) { // TODO: Retry
-            log.error("Failed to serialize MessageRequestDTO to JSON", ex);
         }
     }
 
@@ -129,7 +56,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     private void sendMessageToTheReceiverThroughWebSocket(MsvcGetUserPresenceResponseDTO responseDTO, String messageContent) {
-        ReceiveMessageRequestDTO receiveMessageRequestDTO = new ReceiveMessageRequestDTO(
+        var receiveMessageRequestDTO = new ApiGatewayHandleReceiveMessageRequestDTO(
                 responseDTO.getSessionId(),
                 messageContent
         );
