@@ -5,6 +5,7 @@ import com.ItCareerElevatorFifthExercise.DTOs.common.ErrorResponseDTO;
 import com.ItCareerElevatorFifthExercise.DTOs.request.MessageRequestDTO;
 import com.ItCareerElevatorFifthExercise.DTOs.userPresence.MsvcGetUserPresenceResponseDTO;
 import com.ItCareerElevatorFifthExercise.exceptions.UserPresenceMicroserviceException;
+import com.ItCareerElevatorFifthExercise.services.interfaces.DeliverMessageService;
 import com.ItCareerElevatorFifthExercise.services.interfaces.MessageService;
 import com.ItCareerElevatorFifthExercise.services.interfaces.PersistMessageService;
 import com.ItCareerElevatorFifthExercise.services.interfaces.UserLocationService;
@@ -20,10 +21,11 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class MessageServiceImpl implements MessageService {
 
-    private final WebClient webClient;
     private final WebClient userPresenceWebClient;
-    private final PersistMessageService persistMessageService;
+
     private final UserLocationService userLocationService;
+    private final DeliverMessageService deliverMessageService;
+    private final PersistMessageService persistMessageService;
 
     @Override
     public void processMessage(MessageRequestDTO requestDTO) {
@@ -32,21 +34,28 @@ public class MessageServiceImpl implements MessageService {
 
         // TODO: Also handle groups...
 
-        MsvcGetUserPresenceResponseDTO userPresenceResponseDTO = getUserPresence(requestDTO.getReceiverId());
-        if (userPresenceResponseDTO.getServerInstanceAddress() != null) {
-            sendMessageToTheReceiverThroughWebSocket(userPresenceResponseDTO, requestDTO.getContent());
+        var userPresenceResponseDTO = getReceiverPresence(requestDTO.getReceiverId());
+
+        if (isReceiverOnline(userPresenceResponseDTO)) {
+            deliverMessageService
+                    .sendMessageToTheReceiverThroughWebSocket(
+                            userPresenceResponseDTO.getServerInstanceAddress(),
+                            userPresenceResponseDTO.getSessionId(),
+                            requestDTO.getContent()
+                    );
+
         } else {
 //            TODO: send through mail
         }
     }
 
-    private MsvcGetUserPresenceResponseDTO getUserPresence(String receiverId) {
+    private MsvcGetUserPresenceResponseDTO getReceiverPresence(String receiverId) {
         return userPresenceWebClient
                 .get()
                 .uri("/api/userPresence/" + receiverId)
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, // TODO: Look for a better approach (test all possible custom errors)
-                        resp -> resp // TODO: Handle or retry
+                        resp -> resp
                                 .bodyToMono(ErrorResponseDTO.class)
                                 .map(UserPresenceMicroserviceException::new)
                                 .flatMap(Mono::error)
@@ -55,25 +64,12 @@ public class MessageServiceImpl implements MessageService {
                 .block();
     }
 
-    private void sendMessageToTheReceiverThroughWebSocket(MsvcGetUserPresenceResponseDTO responseDTO, String messageContent) {
-        var receiveMessageRequestDTO = new ApiGatewayHandleReceiveMessageRequestDTO(
-                responseDTO.getSessionId(),
-                messageContent
-        );
-
-        String url = String.format("http://%s/internal/deliverMessage", responseDTO.getServerInstanceAddress());
-
-        webClient.post()
-                .uri(url)
-                .bodyValue(receiveMessageRequestDTO)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError,
-                        resp -> resp
-                                .bodyToMono(ErrorResponseDTO.class)
-                                .map(UserPresenceMicroserviceException::new)
-                                .flatMap(Mono::error)
-                )
-                .toBodilessEntity()
-                .block();
+    private boolean isReceiverOnline(MsvcGetUserPresenceResponseDTO userPresenceResponseDTO) {
+        return
+                // @formatter:off
+                    userPresenceResponseDTO.getServerInstanceAddress() != null &&
+                    userPresenceResponseDTO.getSessionId() != null &&
+                    userPresenceResponseDTO.getUserEmail() == null;
+                // @formatter:on
     }
 }
