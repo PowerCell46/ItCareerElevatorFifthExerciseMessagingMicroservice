@@ -42,7 +42,8 @@ public class MessageServiceImpl implements MessageService {
                     .sendMessageToReceiverThroughWebSocket(
                             userPresenceResponseDTO.getServerInstanceAddress(),
                             userPresenceResponseDTO.getSessionId(),
-                            requestDTO.getContent()
+                            requestDTO.getContent(),
+                            requestDTO.getSentAt()
                     );
 
         } else {
@@ -50,7 +51,8 @@ public class MessageServiceImpl implements MessageService {
                     .sendMessageToReceiverThroughEmail(
                             requestDTO.getSenderId(),
                             requestDTO.getReceiverId(),
-                            requestDTO.getContent()
+                            requestDTO.getContent(),
+                            requestDTO.getSentAt()
                     );
         }
     }

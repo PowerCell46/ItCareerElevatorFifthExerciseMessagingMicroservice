@@ -16,8 +16,8 @@ public class RetryPolicy {
                 // @formatter:on
     }
 
-    private static boolean isTransientHttpResponse(Throwable t) {
-        if (t instanceof org.springframework.web.reactive.function.client.WebClientResponseException ex) {
+    private static boolean isTransientHttpResponse(Throwable throwable) {
+        if (throwable instanceof org.springframework.web.reactive.function.client.WebClientResponseException ex) {
             int status = ex.getStatusCode().value();
 
             return status == 502 || status == 503 || status == 504;

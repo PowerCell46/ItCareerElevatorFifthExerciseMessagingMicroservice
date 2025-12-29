@@ -40,7 +40,12 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public KafkaTemplate<String, String> messageKafkaTemplate() {
+    public KafkaTemplate<String, String> persistMessageKafkaTemplate() {
+        return new KafkaTemplate<>(persistMessageProducerFactory());
+    }
+
+    @Bean
+    public KafkaTemplate<String, String> userLocationKafkaTemplate() {
         return new KafkaTemplate<>(persistMessageProducerFactory());
     }
 }

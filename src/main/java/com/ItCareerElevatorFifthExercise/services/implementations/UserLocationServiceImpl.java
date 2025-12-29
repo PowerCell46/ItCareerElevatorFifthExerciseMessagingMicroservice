@@ -37,7 +37,7 @@ public class UserLocationServiceImpl implements UserLocationService {
             userLocationKafkaTemplate
                     .send(USER_LOCATION_TOPIC_NAME, key, value)
                     .whenComplete((result, ex) -> {
-                        if (ex != null) { // TODO: EXPONENTIAL BACKOFF WITH JITTER
+                        if (ex != null) {
                             log.error("Failed to send UserLocationDTO to topic {}.", USER_LOCATION_TOPIC_NAME, ex);
 
                         } else {
@@ -51,7 +51,7 @@ public class UserLocationServiceImpl implements UserLocationService {
                     });
 
         } catch (JsonProcessingException ex) { // TODO: Retry
-            log.error("Failed to serialize MessageRequestDTO to JSON", ex);
+            log.error("Failed to serialize UserLocationDTO to JSON.", ex);
         }
     }
 }

@@ -25,7 +25,7 @@ public class PersistMessageServiceImpl implements PersistMessageService {
     @Override
     public void sendKafkaPersistMessage(MessageRequestDTO requestDTO) {
         try {
-            String key = String.format("user-message-%s", requestDTO.getSenderId());
+            String key = String.format("persist-message-user-%s", requestDTO.getSenderId());
             String value = objectMapper.writeValueAsString(new PersistMessageDTO(
                     requestDTO.getSenderId(),
                     requestDTO.getReceiverId(),
@@ -36,7 +36,7 @@ public class PersistMessageServiceImpl implements PersistMessageService {
             persistMessageKafkaTemplate
                     .send(PERSIST_MESSAGE_TOPIC_NAME, key, value)
                     .whenComplete((result, ex) -> {
-                        if (ex != null) { // TODO: EXPONENTIAL BACKOFF WITH JITTER
+                        if (ex != null) {
                             log.error("Failed to send PersistMessageDTO to topic {}.", PERSIST_MESSAGE_TOPIC_NAME, ex);
 
                         } else {
@@ -50,7 +50,7 @@ public class PersistMessageServiceImpl implements PersistMessageService {
                     });
 
         } catch (JsonProcessingException ex) { // TODO: Retry
-            log.error("Failed to serialize MessageRequestDTO to JSON", ex);
+            log.error("Failed to serialize PersistMessageDTO to JSON.", ex);
         }
     }
 }

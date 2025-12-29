@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 
 @Slf4j
 @Service
@@ -34,17 +35,21 @@ public class DeliverMessageServiceImpl implements DeliverMessageService {
     private String deliverMessageThroughEmailPath;
 
     @Override
-    public void sendMessageToReceiverThroughWebSocket(String serverInstanceAddress, String sessionId, String messageContent) {
-        var receiveMessageRequestDTO = new ApiGatewayHandleReceiveMessageThroughWebSocketRequestDTO(
+    public void sendMessageToReceiverThroughWebSocket(
+            String serverInstanceAddress, String sessionId,
+            String messageContent, LocalDateTime sentAt
+    ) {
+        var receiveWsMessageRequestDTO = new ApiGatewayHandleReceiveMessageThroughWebSocketRequestDTO(
                 sessionId,
-                messageContent
+                messageContent,
+                sentAt
         );
 
         String url = String.format("http://%s%s", serverInstanceAddress, deliverMessageThroughWebSocketPath); // TODO: HTTP?
 
         webClient.post()
                 .uri(url)
-                .bodyValue(receiveMessageRequestDTO)
+                .bodyValue(receiveWsMessageRequestDTO)
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, // TODO: Look for a better approach (test all possible custom errors)
                         resp -> resp
@@ -58,16 +63,20 @@ public class DeliverMessageServiceImpl implements DeliverMessageService {
     }
 
     @Override
-    public void sendMessageToReceiverThroughEmail(String senderId, String receiverId, String messageContent) {
-        var receiveMessageRequestDTO = new ApiGatewayHandleReceiveMessageThroughEmailRequestDTO(
+    public void sendMessageToReceiverThroughEmail(
+            String senderId, String receiverId,
+            String messageContent, LocalDateTime sentAt
+    ) {
+        var receiveEmailMessageRequestDTO = new ApiGatewayHandleReceiveMessageThroughEmailRequestDTO(
                 senderId,
                 receiverId,
-                messageContent
+                messageContent,
+                sentAt
         );
 
         webClient.post()
                 .uri(API_GATEWAY_BASE_URL + deliverMessageThroughEmailPath)
-                .bodyValue(receiveMessageRequestDTO)
+                .bodyValue(receiveEmailMessageRequestDTO)
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, // TODO: Look for a better approach (test all possible custom errors)
                         resp -> resp

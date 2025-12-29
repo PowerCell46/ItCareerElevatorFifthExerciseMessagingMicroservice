@@ -21,7 +21,7 @@ public class MessageController {
 
     @PostMapping
     public ResponseEntity<String> processMessage(@Valid @RequestBody MessageRequestDTO requestDTO) { // TODO: Change return type
-        log.info("---> POST request on /api/messages for message sender with id {}.", requestDTO.getSenderId());
+        log.info("---> POST request on api/messages for message sender with id {}.", requestDTO.getSenderId());
 
         messageService.processMessage(requestDTO);
 
