@@ -26,6 +26,16 @@ public class KafkaProducerConfig {
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
 
+        // Kafka will attempt the send, then retry up to 10 times, waiting ~200 ms, 400 ms, 800 ms, etc. between attempts
+        // (subject to jitter and internal rules), but never longer than 120 seconds total for that record.
+        config.put(ProducerConfig.RETRIES_CONFIG, 10);
+        config.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, 200);
+        config.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 120000);
+
+        config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
+        config.put(ProducerConfig.ACKS_CONFIG, "all");
+        config.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 5);
+
         return new DefaultKafkaProducerFactory<>(config);
     }
 

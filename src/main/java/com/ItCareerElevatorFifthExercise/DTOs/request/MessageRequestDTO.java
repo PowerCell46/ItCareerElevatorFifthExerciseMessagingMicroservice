@@ -18,7 +18,7 @@ public class MessageRequestDTO {
 
     private String senderId;
 
-    private String senderUsername;
+    private String senderUsername; // For reading data convenience
 
     private LocationRequestDTO senderLocation;
 
