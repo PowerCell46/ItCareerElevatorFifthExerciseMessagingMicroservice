@@ -8,12 +8,16 @@ import com.ItCareerElevatorFifthExercise.services.interfaces.DeliverMessageServi
 import com.ItCareerElevatorFifthExercise.services.interfaces.MessageService;
 import com.ItCareerElevatorFifthExercise.services.interfaces.PersistMessageService;
 import com.ItCareerElevatorFifthExercise.services.interfaces.UserLocationService;
+import com.ItCareerElevatorFifthExercise.util.RetryPolicy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
+
+import java.time.Duration;
 
 @Slf4j
 @Service
@@ -63,7 +67,27 @@ public class MessageServiceImpl implements MessageService {
                                 .flatMap(Mono::error)
                 )
                 .bodyToMono(MsvcGetUserPresenceResponseDTO.class)
+                .retryWhen(buildRetrySpec())
                 .block();
+    }
+
+    private Retry buildRetrySpec() {
+        return Retry
+                .backoff(4, Duration.ofSeconds(2)) // 2s, 4s, 8s, 16s
+                .maxBackoff(Duration.ofSeconds(20))
+                .jitter(0.5d) // 50% jitter
+                .filter(RetryPolicy::isRetriable)
+                .onRetryExhaustedThrow((spec, signal) -> {
+                    Throwable failure = signal.failure();
+
+                    ErrorResponseDTO error = new ErrorResponseDTO(
+                            500,
+                            failure.getMessage() != null ? failure.getMessage() : "Internal server error occurred.",
+                            System.currentTimeMillis()
+                    );
+
+                    return new UserPresenceMicroserviceException(error);
+                });
     }
 
     private boolean isReceiverOnline(MsvcGetUserPresenceResponseDTO userPresenceResponseDTO) {
