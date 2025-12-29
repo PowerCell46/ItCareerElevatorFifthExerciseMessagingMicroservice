@@ -1,6 +1,7 @@
 package com.ItCareerElevatorFifthExercise.services.implementations;
 
-import com.ItCareerElevatorFifthExercise.DTOs.apiGateway.ApiGatewayHandleReceiveMessageRequestDTO;
+import com.ItCareerElevatorFifthExercise.DTOs.apiGateway.ApiGatewayHandleReceiveMessageThroughEmailRequestDTO;
+import com.ItCareerElevatorFifthExercise.DTOs.apiGateway.ApiGatewayHandleReceiveMessageThroughWebSocketRequestDTO;
 import com.ItCareerElevatorFifthExercise.DTOs.common.ErrorResponseDTO;
 import com.ItCareerElevatorFifthExercise.exceptions.ApiGatewayException;
 import com.ItCareerElevatorFifthExercise.services.interfaces.DeliverMessageService;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
+
 import java.time.Duration;
 
 @Slf4j
@@ -22,17 +24,23 @@ public class DeliverMessageServiceImpl implements DeliverMessageService {
 
     private final WebClient webClient;
 
-    @Value("${api-gateway.internal.deliver-message-path}")
-    private String deliverMessagePath;
+    @Value("${api-gateway.base-endpoint}")
+    private String API_GATEWAY_BASE_URL;
+
+    @Value("${api-gateway.internal.deliver-message-through-web-socket-path}")
+    private String deliverMessageThroughWebSocketPath;
+
+    @Value("${api-gateway.internal.deliver-message-through-email-path}")
+    private String deliverMessageThroughEmailPath;
 
     @Override
     public void sendMessageToReceiverThroughWebSocket(String serverInstanceAddress, String sessionId, String messageContent) {
-        var receiveMessageRequestDTO = new ApiGatewayHandleReceiveMessageRequestDTO(
+        var receiveMessageRequestDTO = new ApiGatewayHandleReceiveMessageThroughWebSocketRequestDTO(
                 sessionId,
                 messageContent
         );
 
-        String url = String.format("http://%s%s", serverInstanceAddress, deliverMessagePath); // TODO: HTTP?
+        String url = String.format("http://%s%s", serverInstanceAddress, deliverMessageThroughWebSocketPath); // TODO: HTTP?
 
         webClient.post()
                 .uri(url)
@@ -50,8 +58,26 @@ public class DeliverMessageServiceImpl implements DeliverMessageService {
     }
 
     @Override
-    public void sendMessageToReceiverThroughEmail(String senderId, String messageContent) {
-        // TODO: Even better, make a request to ApiGateway, to get the email in the db of the receiver and send a kafka message
+    public void sendMessageToReceiverThroughEmail(String senderId, String receiverId, String messageContent) {
+        var receiveMessageRequestDTO = new ApiGatewayHandleReceiveMessageThroughEmailRequestDTO(
+                senderId,
+                receiverId,
+                messageContent
+        );
+
+        webClient.post()
+                .uri(API_GATEWAY_BASE_URL + deliverMessageThroughEmailPath)
+                .bodyValue(receiveMessageRequestDTO)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, // TODO: Look for a better approach (test all possible custom errors)
+                        resp -> resp
+                                .bodyToMono(ErrorResponseDTO.class)
+                                .map(ApiGatewayException::new)
+                                .flatMap(Mono::error)
+                )
+                .toBodilessEntity()
+                .retryWhen(buildRetrySpec())
+                .block();
     }
 
     private Retry buildRetrySpec() {

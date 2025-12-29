@@ -48,6 +48,7 @@ public class MessageServiceImpl implements MessageService {
         } else {
             deliverMessageService
                     .sendMessageToReceiverThroughEmail(
+                            requestDTO.getSenderId(),
                             requestDTO.getReceiverId(),
                             requestDTO.getContent()
                     );
