@@ -12,6 +12,4 @@ public class MsvcGetUserPresenceResponseDTO {
     private String serverInstanceAddress;
 
     private String sessionId;
-
-    private String userEmail;
 }

@@ -50,9 +50,7 @@ public class DeliverMessageServiceImpl implements DeliverMessageService {
     }
 
     @Override
-    public void sendMessageToReceiverThroughEmail(String senderUsername, String receiverEmail, String messageContent) {
-        // TODO: send a message to a kafka topic to a new microservice that sends emails to users
-        // TODO: don't forget exponential backoff with jitter
+    public void sendMessageToReceiverThroughEmail(String senderId, String messageContent) {
         // TODO: Even better, make a request to ApiGateway, to get the email in the db of the receiver and send a kafka message
     }
 

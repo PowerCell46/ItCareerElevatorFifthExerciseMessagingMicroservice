@@ -48,8 +48,7 @@ public class MessageServiceImpl implements MessageService {
         } else {
             deliverMessageService
                     .sendMessageToReceiverThroughEmail(
-                            requestDTO.getSenderUsername(),
-                            userPresenceResponseDTO.getUserEmail(),
+                            requestDTO.getReceiverId(),
                             requestDTO.getContent()
                     );
         }
@@ -93,9 +92,8 @@ public class MessageServiceImpl implements MessageService {
     private boolean isReceiverOnline(MsvcGetUserPresenceResponseDTO userPresenceResponseDTO) {
         return
                 // @formatter:off
-                    userPresenceResponseDTO.getServerInstanceAddress() != null &&
-                    userPresenceResponseDTO.getSessionId() != null &&
-                    userPresenceResponseDTO.getUserEmail() == null;
+                    userPresenceResponseDTO.getServerInstanceAddress() != null ||
+                    userPresenceResponseDTO.getSessionId() != null;
                 // @formatter:on
     }
 }
