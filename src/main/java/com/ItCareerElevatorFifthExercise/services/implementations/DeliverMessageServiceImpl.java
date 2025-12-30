@@ -39,7 +39,7 @@ public class DeliverMessageServiceImpl implements DeliverMessageService {
             String serverInstanceAddress, String sessionId,
             String messageContent, LocalDateTime sentAt
     ) {
-        var receiveWsMessageRequestDTO = new ApiGatewayHandleReceiveMessageThroughWebSocketRequestDTO(
+        var requestDTO = new ApiGatewayHandleReceiveMessageThroughWebSocketRequestDTO(
                 sessionId,
                 messageContent,
                 sentAt
@@ -49,7 +49,7 @@ public class DeliverMessageServiceImpl implements DeliverMessageService {
 
         webClient.post()
                 .uri(url)
-                .bodyValue(receiveWsMessageRequestDTO)
+                .bodyValue(requestDTO)
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, // TODO: Look for a better approach (test all possible custom errors)
                         resp -> resp
@@ -67,7 +67,7 @@ public class DeliverMessageServiceImpl implements DeliverMessageService {
             String senderId, String receiverId,
             String messageContent, LocalDateTime sentAt
     ) {
-        var receiveEmailMessageRequestDTO = new ApiGatewayHandleReceiveMessageThroughEmailRequestDTO(
+        var requestDTO = new ApiGatewayHandleReceiveMessageThroughEmailRequestDTO(
                 senderId,
                 receiverId,
                 messageContent,
@@ -76,7 +76,7 @@ public class DeliverMessageServiceImpl implements DeliverMessageService {
 
         webClient.post()
                 .uri(API_GATEWAY_BASE_URL + deliverMessageThroughEmailPath)
-                .bodyValue(receiveEmailMessageRequestDTO)
+                .bodyValue(requestDTO)
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, // TODO: Look for a better approach (test all possible custom errors)
                         resp -> resp

@@ -95,7 +95,7 @@ public class MessageServiceImpl implements MessageService {
     private boolean isReceiverOnline(MsvcGetUserPresenceResponseDTO userPresenceResponseDTO) {
         return
                 // @formatter:off
-                    userPresenceResponseDTO.getServerInstanceAddress() != null ||
+                    userPresenceResponseDTO.getServerInstanceAddress() != null &&
                     userPresenceResponseDTO.getSessionId() != null;
                 // @formatter:on
     }
