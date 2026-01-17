@@ -19,7 +19,7 @@ public class KafkaProducerConfig {
     private String bootstrapServers;
 
     @Bean
-    public ProducerFactory<String, String> persistMessageProducerFactory() {
+    public ProducerFactory<String, String> defaultProducerFactory() {
         Map<String, Object> config = new HashMap<>();
 
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
@@ -41,11 +41,16 @@ public class KafkaProducerConfig {
 
     @Bean
     public KafkaTemplate<String, String> persistMessageKafkaTemplate() {
-        return new KafkaTemplate<>(persistMessageProducerFactory());
+        return new KafkaTemplate<>(defaultProducerFactory());
     }
 
     @Bean
     public KafkaTemplate<String, String> userLocationKafkaTemplate() {
-        return new KafkaTemplate<>(persistMessageProducerFactory());
+        return new KafkaTemplate<>(defaultProducerFactory());
+    }
+
+    @Bean
+    public KafkaTemplate<String, String> forwardMessageKafkaTemplate() {
+        return new KafkaTemplate<>(defaultProducerFactory());
     }
 }

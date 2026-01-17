@@ -12,11 +12,15 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @AllArgsConstructor
-public class ApiGatewayHandleReceiveMessageThroughWebSocketRequestDTO {
+public class ApiGatewayHandleReceiveMessageThroughWebSocketDTO {
 
     private String sessionId;
 
     private String content;
+
+    private String senderId;
+
+    private String senderUsername; // For visualizing data convenience
 
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")

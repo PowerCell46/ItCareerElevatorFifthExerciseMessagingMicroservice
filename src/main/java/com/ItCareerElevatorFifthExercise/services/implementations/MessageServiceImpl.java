@@ -39,11 +39,9 @@ public class MessageServiceImpl implements MessageService {
 
         if (isReceiverOnline(userPresenceResponseDTO)) {
             deliverMessageService
-                    .sendMessageToReceiverThroughWebSocket(
-                            userPresenceResponseDTO.getServerInstanceAddress(),
-                            userPresenceResponseDTO.getSessionId(),
-                            requestDTO.getContent(),
-                            requestDTO.getSentAt()
+                    .sendMessageToReceiverThroughWebSocketViaMessageBroker(
+                            userPresenceResponseDTO,
+                            requestDTO
                     );
 
         } else {

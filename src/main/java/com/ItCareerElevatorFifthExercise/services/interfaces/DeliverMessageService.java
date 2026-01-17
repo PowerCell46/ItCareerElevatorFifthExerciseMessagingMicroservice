@@ -1,12 +1,15 @@
 package com.ItCareerElevatorFifthExercise.services.interfaces;
 
+import com.ItCareerElevatorFifthExercise.DTOs.request.MessageRequestDTO;
+import com.ItCareerElevatorFifthExercise.DTOs.userPresence.MsvcGetUserPresenceResponseDTO;
+
 import java.time.LocalDateTime;
 
 public interface DeliverMessageService {
 
-    void sendMessageToReceiverThroughWebSocket(
-            String serverInstanceAddress, String sessionId,
-            String messageContent, LocalDateTime sentAt
+    void sendMessageToReceiverThroughWebSocketViaMessageBroker(
+            MsvcGetUserPresenceResponseDTO userPresenceResponseDTO,
+            MessageRequestDTO messageRequestDTO
     );
 
     void sendMessageToReceiverThroughEmail(
