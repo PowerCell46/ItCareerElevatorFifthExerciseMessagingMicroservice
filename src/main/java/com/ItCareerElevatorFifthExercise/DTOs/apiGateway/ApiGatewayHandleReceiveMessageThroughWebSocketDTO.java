@@ -14,6 +14,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ApiGatewayHandleReceiveMessageThroughWebSocketDTO {
 
+    private String serverInstanceAddress;
+
     private String sessionId;
 
     private String content;

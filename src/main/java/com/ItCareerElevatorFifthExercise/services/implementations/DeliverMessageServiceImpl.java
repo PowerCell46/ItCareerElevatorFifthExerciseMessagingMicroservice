@@ -45,19 +45,21 @@ public class DeliverMessageServiceImpl implements DeliverMessageService {
 
     @Override
     public void sendMessageToReceiverThroughWebSocketViaMessageBroker(
-        MsvcGetUserPresenceResponseDTO userPresenceResponseDTO,
-        MessageRequestDTO messageRequestDTO
+            MsvcGetUserPresenceResponseDTO userPresenceResponseDTO,
+            MessageRequestDTO messageRequestDTO
     ) {
         try {
             String key = String.format("forward-message-%s", userPresenceResponseDTO.getSessionId());
 
-            String value = objectMapper.writeValueAsString(new ApiGatewayHandleReceiveMessageThroughWebSocketDTO(
-                    userPresenceResponseDTO.getSessionId(),
-                    messageRequestDTO.getContent(),
-                    messageRequestDTO.getSenderId(),
-                    messageRequestDTO.getSenderUsername(),
-                    messageRequestDTO.getSentAt()
-            ));
+            String value = objectMapper
+                    .writeValueAsString(new ApiGatewayHandleReceiveMessageThroughWebSocketDTO(
+                            userPresenceResponseDTO.getServerInstanceAddress(),
+                            userPresenceResponseDTO.getSessionId(),
+                            messageRequestDTO.getContent(),
+                            messageRequestDTO.getSenderId(),
+                            messageRequestDTO.getSenderUsername(),
+                            messageRequestDTO.getSentAt()
+                    ));
 
             forwardMessageKafkaTemplate
                     .send(FORWARD_MESSAGE_TOPIC_NAME, key, value)
@@ -81,15 +83,13 @@ public class DeliverMessageServiceImpl implements DeliverMessageService {
     }
 
     @Override
-    public void sendMessageToReceiverThroughEmail(
-            String senderId, String receiverId,
-            String messageContent, LocalDateTime sentAt
-    ) {
+    public void sendMessageToReceiverThroughEmail(MessageRequestDTO messageRequestDTO) {
         var requestDTO = new ApiGatewayHandleReceiveMessageThroughEmailRequestDTO(
-                senderId,
-                receiverId,
-                messageContent,
-                sentAt
+                messageRequestDTO.getSenderId(),
+                messageRequestDTO.getSenderUsername(),
+                messageRequestDTO.getReceiverId(),
+                messageRequestDTO.getContent(),
+                messageRequestDTO.getSentAt()
         );
 
         webClient.post()
