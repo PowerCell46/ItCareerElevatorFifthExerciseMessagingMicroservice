@@ -57,6 +57,7 @@ public class DeliverMessageServiceImpl implements DeliverMessageService {
                             messageRequestDTO.getContent(),
                             messageRequestDTO.getSenderId(),
                             messageRequestDTO.getSenderUsername(),
+                            messageRequestDTO.getReceiverId(),
                             messageRequestDTO.getSentAt()
                     ));
 

@@ -24,6 +24,8 @@ public class ApiGatewayHandleReceiveMessageThroughWebSocketDTO {
 
     private String senderUsername; // For visualizing data convenience
 
+    private String receiverId;
+
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     private LocalDateTime sentAt;
