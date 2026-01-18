@@ -21,7 +21,6 @@ import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 
 @Slf4j
 @Service
@@ -41,7 +40,7 @@ public class DeliverMessageServiceImpl implements DeliverMessageService {
     private String API_GATEWAY_BASE_URL;
 
     @Value("${api-gateway.internal.deliver-message-through-email-path}")
-    private String deliverMessageThroughEmailPath;
+    private String DELIVER_MESSAGE_THROUGH_EMAIL_PATH;
 
     @Override
     public void sendMessageToReceiverThroughWebSocketViaMessageBroker(
@@ -83,7 +82,7 @@ public class DeliverMessageServiceImpl implements DeliverMessageService {
     }
 
     @Override
-    public void sendMessageToReceiverThroughEmail(MessageRequestDTO messageRequestDTO) {
+    public void sendMessageToReceiverThroughEmailViaHttp(MessageRequestDTO messageRequestDTO) {
         var requestDTO = new ApiGatewayHandleReceiveMessageThroughEmailRequestDTO(
                 messageRequestDTO.getSenderId(),
                 messageRequestDTO.getSenderUsername(),
@@ -93,7 +92,7 @@ public class DeliverMessageServiceImpl implements DeliverMessageService {
         );
 
         webClient.post()
-                .uri(API_GATEWAY_BASE_URL + deliverMessageThroughEmailPath)
+                .uri(API_GATEWAY_BASE_URL + DELIVER_MESSAGE_THROUGH_EMAIL_PATH)
                 .bodyValue(requestDTO)
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, // TODO: Look for a better approach (test all possible custom errors)

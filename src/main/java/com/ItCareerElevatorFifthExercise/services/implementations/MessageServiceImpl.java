@@ -45,7 +45,7 @@ public class MessageServiceImpl implements MessageService {
                     );
 
         } else {
-            deliverMessageService.sendMessageToReceiverThroughEmail(requestDTO);
+            deliverMessageService.sendMessageToReceiverThroughEmailViaHttp(requestDTO);
         }
     }
 

@@ -10,5 +10,5 @@ public interface DeliverMessageService {
             MessageRequestDTO messageRequestDTO
     );
 
-    void sendMessageToReceiverThroughEmail(MessageRequestDTO messageRequestDTO);
+    void sendMessageToReceiverThroughEmailViaHttp(MessageRequestDTO messageRequestDTO);
 }
