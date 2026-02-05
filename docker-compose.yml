@@ -12,7 +12,7 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_LOG_DIRS: /var/lib/kafka/data
-#    ports:  # ! We don't need it unless we want to access Kafka from the outside
+#    ports: # ! We don't need it unless we want to access Kafka from the outside
 #      - "9092:9092"
     volumes:
       - messaging_vol_kafka:/var/lib/kafka/data
@@ -22,7 +22,7 @@ services:
       timeout: 10s
       retries: 5
 
-    # Spring application
+  # Spring application
   app:
     build:
       context: .
